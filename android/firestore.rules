@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for secure user ownership validation
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User profile document
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      // Clients sub-collection
+      match /clients/{clientId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Payments sub-collection
+      match /payments/{paymentId} {
+        allow read: if isOwner(userId);
+        
+        // Ensure decimal-safe cents format and required fields
+        allow create: if isOwner(userId)
+          && request.resource.data.amountCents is int
+          && request.resource.data.amountCents > 0
+          && request.resource.data.currency is string;
+          
+        allow update: if isOwner(userId)
+          && request.resource.data.amountPaidCents is int
+          && request.resource.data.amountPaidCents <= request.resource.data.amountCents;
+
+        allow delete: if isOwner(userId);
+      }
+
+      // Reminder sequences and settings
+      match /settings/{settingId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: false;
+    }
+  }
+}

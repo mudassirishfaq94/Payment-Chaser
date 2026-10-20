@@ -1,0 +1,8 @@
+{
+  "name": "Payment Chaser",
+  "description": "You do the work. We chase the payment. Lightweight mobile application for tracking outstanding payments, managing clients, scheduling smart reminders, and accelerating collections.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
